@@ -14,39 +14,51 @@ The lab has three networks joined by pfSense. The attacker sits in NET 2, the ta
 
 ## Diagram
 
+**Network and log path.** Kali reaches Juice Shop only through the WAF. pfSense blocks the direct path.
+
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph NET2["NET 2 · 192.168.40.0/24"]
-    K["Kali Linux<br/>192.168.40.50"]
+    K["Kali Linux (attacker)<br/>192.168.40.50"]
   end
-  subgraph WAFVM["WAF VM · 192.168.40.51 / 192.168.20.54"]
-    W["Nginx + ModSecurity v3<br/>OWASP CRS 4.29.0 (DetectionOnly)"]
-    S["Suricata 8.0.8<br/>ens33 + ens37"]
+  subgraph WAF["WAF VM (waf-vm) · ens33 192.168.40.51 · ens37 192.168.20.54"]
+    W["Nginx 1.18.0 + ModSecurity v3<br/>OWASP CRS 4.29.0 · DetectionOnly"]
+    S["Suricata 8.0.8 · ET Open<br/>captures ens33 + ens37"]
     U["Splunk Universal Forwarder"]
   end
   subgraph NET1["NET 1 · 192.168.20.0/24"]
     J["OWASP Juice Shop<br/>192.168.20.51:8080"]
   end
-  P["pfSense 2.7.2"]
+  P{{"pfSense 2.7.2<br/>segmentation · routing · NTP"}}
   subgraph NET3["NET 3 · 192.168.30.0/24"]
     SP["Splunk Enterprise 10.4.1<br/>192.168.30.51"]
+  end
+  K -->|"HTTP attacks"| W
+  W -->|"proxied requests"| J
+  K -.-x|"direct access blocked by pfSense"| J
+  W -->|"ModSecurity + Nginx logs"| U
+  S -->|"eve.json"| U
+  U -->|"TCP 9997"| P
+  P --> SP
+```
+
+**Automation on the Splunk VM.** n8n and the Splunk HEC and REST ports listen on localhost only. The AI is advisory; the analyst approves every mapping change.
+
+```mermaid
+flowchart LR
+  subgraph SVM["Splunk VM · 192.168.30.51"]
+    SP["Splunk Enterprise<br/>alerts · lookups · dashboard"]
     N["n8n 2.47.7<br/>127.0.0.1:5678"]
   end
   G["Google Gemini API<br/>gemini-3.5-flash-lite"]
-  A["SOC analyst"]
+  A(["SOC analyst"])
   NAV["ATT&CK Navigator layer"]
-  K -- "HTTP attacks" --> W
-  W -- "proxied requests" --> J
-  W -. logs .-> U
-  S -. eve.json .-> U
-  U -. "TCP 9997" .-> P -.-> SP
-  SP -- "alert webhook" --> N
-  N -- "prompt" --> G
-  G -- "JSON answer" --> N
-  N -- "HEC → index soc_ai" --> SP
-  SP -- "dashboard" --> A
-  A -- "approval form" --> N
-  N -- "layer JSON" --> NAV
+  SP -->|"alert webhook · REST :8089"| N
+  N -->|"HEC :8088 → index soc_ai"| SP
+  N <-->|"prompt / JSON answer"| G
+  SP -->|"dashboard"| A
+  A -->|"approval form"| N
+  N -->|"layer JSON"| NAV
 ```
 
 ## Traffic and data flows
