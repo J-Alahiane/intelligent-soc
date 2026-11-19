@@ -1,0 +1,1192 @@
+{
+  "title": "SOC Lab - WAF + IDS Overview",
+  "description": "ModSecurity + CRS, Suricata and Splunk correlation. Times are Splunk server time (UTC+1).",
+  "inputs": {
+    "input_time": {
+      "type": "input.timerange",
+      "title": "Time range",
+      "options": {
+        "token": "global_time",
+        "defaultValue": "-24h@h,now"
+      }
+    }
+  },
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "$global_time.earliest$",
+            "latest": "$global_time.latest$"
+          }
+        }
+      }
+    }
+  },
+  "dataSources": {
+    "ds_corr": {
+      "type": "ds.search",
+      "name": "Correlated incidents (base)",
+      "options": {
+        "query": "`corr_incidents` | where NOT like(confidence,\"LOW%\") | eval ids_d=mvfilter(match(detail,\"^IDS\")), waf_d=mvfilter(match(detail,\"^WAF\")) | eval evidence=if(like(confidence,\"%IDS%\") AND isnotnull(ids_d), replace(mvindex(ids_d,0),\" \\Wsev \\d.*$\",\"\"), replace(mvindex(waf_d,0),\" score \\d+$\",\"\")) | stats count as requests dc(req) as urls min(_time) as first_seen max(_time) as last_seen latest(req) as last_url values(evidence) as evidence by client_ip confidence"
+      }
+    },
+    "ds_sur": {
+      "type": "ds.search",
+      "name": "Suricata alerts (base)",
+      "options": {
+        "query": "index=security sourcetype=suricata:eve host=waf-vm event_type=alert | eval sid=tonumber('alert.signature_id'), severity=tonumber('alert.severity'), signature='alert.signature' | where severity<=2 AND NOT (sid>=2200000 AND sid<2300000) | stats count as alerts latest(_time) as last_seen values(in_iface) as interface by sid signature severity"
+      }
+    },
+    "ds_waf_kpi": {
+      "type": "ds.search",
+      "name": "WAF attack transactions",
+      "options": {
+        "query": "`waf_audit` | where isnotnull(ids) AND match(ids,\"(^|,)(913|930|931|932|933|934|941|942|943|944)\\d{3}\") | stats dc(unique_id) as v"
+      }
+    },
+    "ds_bypass": {
+      "type": "ds.search",
+      "name": "WAF bypass",
+      "options": {
+        "query": "index=security sourcetype=suricata:eve host=waf-vm event_type=http in_iface=ens37 dest_ip=\"192.168.20.51\" dest_port=8080 | where src_ip!=\"192.168.20.54\" | stats count as v"
+      }
+    },
+    "ds_timeline": {
+      "type": "ds.search",
+      "name": "Detections over time",
+      "options": {
+        "query": "| multisearch [ search `waf_audit` | where isnotnull(ids) AND match(ids,\"(^|,)(913|930|931|932|933|934|941|942|943|944)\\d{3}\") | eval source=\"ModSecurity\" ] [ search index=security sourcetype=suricata:eve host=waf-vm event_type=alert | eval sid=tonumber('alert.signature_id'), sev=tonumber('alert.severity') | where sev<=2 AND NOT (sid>=2200000 AND sid<2300000) | eval source=\"Suricata\" ] | timechart minspan=1m count by source"
+      }
+    },
+    "ds_families": {
+      "type": "ds.search",
+      "name": "Attack types",
+      "options": {
+        "query": "`waf_audit` | fields unique_id rule_id | mvexpand rule_id | eval family=case(match(rule_id,\"^913\"),\"Scanner / recon\", match(rule_id,\"^930\"),\"Path traversal (LFI)\", match(rule_id,\"^931\"),\"Remote file inclusion\", match(rule_id,\"^932\"),\"Command injection (RCE)\", match(rule_id,\"^933\"),\"PHP injection\", match(rule_id,\"^934\"),\"Generic / Node.js injection\", match(rule_id,\"^941\"),\"Cross-site scripting (XSS)\", match(rule_id,\"^942\"),\"SQL injection\", match(rule_id,\"^943\"),\"Session fixation\", match(rule_id,\"^944\"),\"Java injection\") | where isnotnull(family) | stats dc(unique_id) as requests by family | sort - requests"
+      }
+    },
+    "ds_fired": {
+      "type": "ds.search",
+      "name": "Alerts fired",
+      "options": {
+        "query": "index=_internal sourcetype=scheduler status=success result_count>0 savedsearch_name IN (\"SOC - Correlated incident (WAF/IDS)\",\"SOC - Reconnaissance (scan / burst)\",\"Low-and-slow enumeration\",\"Repeated 4xx errors\",\"SOC - WAF bypass (direct backend access)\",\"Backend availability (separate from attacks)\",\"SOC - Suricata capture/ingest health\",\"SOC - Suricata packet drops\",\"SOC - Suricata heartbeat\",\"SOC - WAF disk usage\",\"SOC - Forwarder silent (covers both forwarders)\",\"SOC - Clock skew / ingestion lag\",\"SOC - Suricata watchdog blind\") | eval fired=result_count-coalesce(suppressed,0) | where fired>0 | stats sum(fired) as triggers latest(_time) as last_fired by savedsearch_name | sort - last_fired | eval last_fired=strftime(last_fired,\"%d/%m %H:%M\") | rename savedsearch_name as alert, last_fired as \"last fired\""
+      }
+    },
+    "ds_health": {
+      "type": "ds.search",
+      "name": "Feed freshness",
+      "options": {
+        "query": "| tstats latest(_time) as last where (index=security sourcetype=suricata:eve host=waf-vm) OR (index=waf sourcetype=nginx:waf:access host=waf-vm) by sourcetype | eval minutes_ago=round((now()-last)/60,0)",
+        "queryParameters": {
+          "earliest": "-7d@d",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_drop": {
+      "type": "ds.search",
+      "name": "Packet drop %",
+      "options": {
+        "query": "index=security sourcetype=suricata:eve host=waf-vm event_type=stats | sort 0 _time | streamstats current=f last(stats.capture.kernel_packets) as prev_pk last(stats.capture.kernel_drops) as prev_dr | eval d_pk='stats.capture.kernel_packets'-prev_pk, d_dr='stats.capture.kernel_drops'-prev_dr | where d_pk>=0 AND d_dr>=0 | stats sum(d_pk) as packets sum(d_dr) as drops | eval v=if(packets>0, round(100*drops/packets,1), 0) | fields v",
+        "queryParameters": {
+          "earliest": "-60m@m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_att_obs": {
+      "type": "ds.search",
+      "name": "ATT\u0026CK techniques observed",
+      "options": {
+        "query": "`corr_incidents` | where NOT like(confidence,\"LOW%\") | eval technique=if(technique_id=\"Unmapped\",\"Unmapped\",technique_id.\" \".technique) | chart count as requests over technique by tactic"
+      }
+    },
+    "ds_att_cov": {
+      "type": "ds.search",
+      "name": "ATT\u0026CK coverage",
+      "options": {
+        "query": "| inputlookup attack_mapping | where technique_id!=\"N/A\" | eval t=if(coverage_status=\"tested\",1,0), u=if(coverage_status=\"untested\",1,0), p=if(coverage_status=\"planned\",1,0), pending=if(coverage_status!=\"tested\",detection_key,null()) | stats sum(t) as tested sum(u) as untested sum(p) as planned values(pending) as pending by tactic technique_id technique | eval status=case(planned>0 AND tested=0 AND untested=0,\"gap (planned)\", untested=0 AND planned=0,\"tested\", tested>0,\"partial\", true(),\"untested\") | eval ord=case(status=\"gap (planned)\",1,status=\"untested\",2,status=\"partial\",3, true(),4) | sort ord technique_id | eval technique=technique_id.\" \".technique, pending=mvjoin(pending,\", \") | table tactic technique status tested untested planned pending | rename pending as \"not yet tested\""
+      }
+    },
+    "ds_ai": {
+      "type": "ds.search",
+      "name": "AI triage suggestions",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai | sort 0 - _time | eval time=strftime(_time,\"%d/%m %H:%M:%S\"), actions=mvjoin('suggested_actions{}',\" | \") | table time alert_name ai_status likely_technique evidence_level confidence summary actions ai_model | rename alert_name as alert, ai_status as status, likely_technique as technique, evidence_level as evidence, ai_model as model"
+      }
+    },
+    "ds_ai_ok": {
+      "type": "ds.search",
+      "name": "AI answers OK",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai ai_status=ok | stats count as v"
+      }
+    },
+    "ds_ai_err": {
+      "type": "ds.search",
+      "name": "AI failures",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai ai_status IN (\"error\",\"invalid\") | stats count as v"
+      }
+    },
+    "ds_map_pend": {
+      "type": "ds.search",
+      "name": "ATT\u0026CK proposals pending",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai:mapping_proposal earliest=-30d latest=now | dedup detection_key | search NOT [ search index=soc_ai sourcetype=soc:ai:mapping_decision earliest=-30d latest=now | dedup detection_key | fields detection_key ] | lookup attack_mapping detection_key OUTPUT technique_id AS mapped | where isnull(mapped) | eval time=strftime(_time,\"%d/%m %H:%M:%S\") | sort 0 - _time | table time run_id detection_key tactic_id technique_id technique signature"
+      }
+    },
+    "ds_map_pend_n": {
+      "type": "ds.chain",
+      "name": "Pending count",
+      "options": {
+        "extend": "ds_map_pend",
+        "query": "| stats count as v"
+      }
+    },
+    "ds_map_app": {
+      "type": "ds.search",
+      "name": "Mappings applied",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai:mapping_decision status=applied | stats count as v"
+      }
+    },
+    "ds_map_rej": {
+      "type": "ds.search",
+      "name": "Proposals rejected",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai:mapping_decision status=rejected | stats count as v"
+      }
+    },
+    "ds_map_log": {
+      "type": "ds.search",
+      "name": "ATT\u0026CK decision log",
+      "options": {
+        "query": "index=soc_ai sourcetype=soc:ai:mapping_decision | sort 0 - _time | eval time=strftime(_time,\"%d/%m %H:%M:%S\") | table time run_id detection_key status technique_id technique tactic_id backup_id note | rename technique_id as \"technique id\", backup_id as backup"
+      }
+    },
+    "ds_high": {
+      "type": "ds.chain",
+      "name": "HIGH requests",
+      "options": {
+        "extend": "ds_corr",
+        "query": "| where like(confidence,\"HIGH%\") | stats sum(requests) as v | eval v=coalesce(v,0)"
+      }
+    },
+    "ds_ids_kpi": {
+      "type": "ds.chain",
+      "name": "IDS alerts KPI",
+      "options": {
+        "extend": "ds_sur",
+        "query": "| stats sum(alerts) as v | eval v=coalesce(v,0)"
+      }
+    },
+    "ds_incidents": {
+      "type": "ds.chain",
+      "name": "Incidents table",
+      "options": {
+        "extend": "ds_corr",
+        "query": "| eval prio=if(like(confidence,\"HIGH%\"),1,2) | sort prio - last_seen | eval first_seen=strftime(first_seen,\"%d/%m %H:%M:%S\"), last_seen=strftime(last_seen,\"%d/%m %H:%M:%S\"), evidence=mvjoin(mvindex(evidence,0,1),\"  |  \") | table client_ip confidence requests urls first_seen last_seen last_url evidence | rename client_ip as \"source IP\", urls as \"distinct URLs\", first_seen as \"first seen\", last_seen as \"last seen\", last_url as \"last URL\""
+      }
+    },
+    "ds_sigs": {
+      "type": "ds.chain",
+      "name": "Top signatures",
+      "options": {
+        "extend": "ds_sur",
+        "query": "| sort severity - alerts | head 10 | eval interface=mvjoin(interface,\", \") | table severity sid signature interface alerts"
+      }
+    },
+    "ds_h_sur": {
+      "type": "ds.chain",
+      "name": "Suricata freshness",
+      "options": {
+        "extend": "ds_health",
+        "query": "| where sourcetype=\"suricata:eve\" | fields minutes_ago"
+      }
+    },
+    "ds_h_web": {
+      "type": "ds.chain",
+      "name": "Web freshness",
+      "options": {
+        "extend": "ds_health",
+        "query": "| where sourcetype=\"nginx:waf:access\" | fields minutes_ago"
+      }
+    }
+  },
+  "visualizations": {
+    "viz_hdr_bg": {
+      "type": "splunk.rectangle",
+      "options": {
+        "fillColor": "#0E1524",
+        "strokeColor": "#0E1524"
+      }
+    },
+    "viz_title": {
+      "type": "splunk.markdown",
+      "options": {
+        "fontColor": "#E8ECF4",
+        "markdown": "## SOC Lab — WAF + IDS Overview\nModSecurity v3 + OWASP CRS 4.29 (**DetectionOnly**) · Suricata 8.0.8 on ens33 (client side) and ens37 (backend side) · **HIGH** = WAF and IDS agree on the same request · **MEDIUM** = one tool saw attack signal · known noise excluded"
+      }
+    },
+    "viz_h_sur": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_h_sur"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Suricata feed (min ago)",
+        "underLabelFontSize": 11,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 10,
+            "value": "#8E2430"
+          },
+          {
+            "from": 3,
+            "to": 10,
+            "value": "#7A5B12"
+          },
+          {
+            "to": 3,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_h_drop": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_drop"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Drop % (last 60 min)",
+        "underLabelFontSize": 11,
+        "numberPrecision": 1,
+        "unit": "%"
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 20,
+            "value": "#8E2430"
+          },
+          {
+            "from": 5,
+            "to": 20,
+            "value": "#7A5B12"
+          },
+          {
+            "to": 5,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_h_web": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_h_web"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Last web request (min ago)",
+        "underLabelFontSize": 11,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 0,
+            "value": "#2A3550"
+          }
+        ]
+      }
+    },
+    "viz_k_waf": {
+      "type": "splunk.singlevalue",
+      "title": "WAF attack requests",
+      "dataSources": {
+        "primary": "ds_waf_kpi"
+      },
+      "options": {
+        "majorColor": "#9B8CFF",
+        "backgroundColor": "#121A2B",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "CRS attack rules matched (913, 930-934, 941-944)",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      }
+    },
+    "viz_k_ids": {
+      "type": "splunk.singlevalue",
+      "title": "IDS alerts",
+      "dataSources": {
+        "primary": "ds_ids_kpi"
+      },
+      "options": {
+        "majorColor": "#FF5C8A",
+        "backgroundColor": "#121A2B",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Suricata severity 1-2, noise SIDs excluded",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      }
+    },
+    "viz_k_high": {
+      "type": "splunk.singlevalue",
+      "title": "HIGH confidence requests",
+      "dataSources": {
+        "primary": "ds_high"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Same request flagged by WAF and IDS",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 1,
+            "value": "#8E2430"
+          },
+          {
+            "to": 1,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_k_bypass": {
+      "type": "splunk.singlevalue",
+      "title": "WAF bypass attempts",
+      "dataSources": {
+        "primary": "ds_bypass"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Direct hits on 192.168.20.51:8080",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 1,
+            "value": "#8E2430"
+          },
+          {
+            "to": 1,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_timeline": {
+      "type": "splunk.column",
+      "title": "Detections over time",
+      "description": "Attack-signal events only, ModSecurity vs Suricata",
+      "dataSources": {
+        "primary": "ds_timeline"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "stackMode": "stacked",
+        "legendDisplay": "top",
+        "xAxisTitleVisibility": "hide",
+        "yAxisTitleVisibility": "hide",
+        "seriesColorsByField": {
+          "ModSecurity": "#9B8CFF",
+          "Suricata": "#FF5C8A"
+        }
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.linkToSearch",
+          "options": {
+            "type": "auto",
+            "newTab": true
+          }
+        }
+      ]
+    },
+    "viz_families": {
+      "type": "splunk.bar",
+      "title": "Attack types seen by the WAF",
+      "description": "Requests per OWASP CRS attack family",
+      "dataSources": {
+        "primary": "ds_families"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "legendDisplay": "off",
+        "seriesColors": [
+          "#9B8CFF"
+        ],
+        "xAxisTitleVisibility": "hide",
+        "yAxisTitleVisibility": "hide",
+        "dataValuesDisplay": "all"
+      }
+    },
+    "viz_incidents": {
+      "type": "splunk.table",
+      "title": "Correlated incidents",
+      "dataSources": {
+        "primary": "ds_incidents"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10,
+        "columnFormat": {
+          "confidence": {
+            "data": "> table | seriesByName(\"confidence\") | formatByType(fmt)",
+            "rowColors": "> table | seriesByName(\"confidence\") | matchValue(conf)"
+          }
+        }
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ],
+        "fmt": {
+          "string": {
+            "unitPosition": "after"
+          }
+        },
+        "conf": [
+          {
+            "match": "HIGH - WAF + IDS",
+            "value": "#FF6B6B"
+          },
+          {
+            "match": "MEDIUM - WAF only",
+            "value": "#F8BE34"
+          },
+          {
+            "match": "MEDIUM - IDS only",
+            "value": "#F8BE34"
+          }
+        ]
+      },
+      "description": "Grouped per source and confidence, HIGH first"
+    },
+    "viz_sigs": {
+      "type": "splunk.table",
+      "title": "Top Suricata signatures",
+      "dataSources": {
+        "primary": "ds_sigs"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10,
+        "columnFormat": {
+          "severity": {
+            "data": "> table | seriesByName(\"severity\") | formatByType(fmt)",
+            "rowColors": "> table | seriesByName(\"severity\") | rangeValue(sev)"
+          }
+        }
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ],
+        "fmt": {
+          "number": {
+            "thousandSeparated": false,
+            "unitPosition": "after"
+          }
+        },
+        "sev": [
+          {
+            "from": 2,
+            "value": "#F8BE34"
+          },
+          {
+            "to": 2,
+            "value": "#FF6B6B"
+          }
+        ]
+      },
+      "description": "Severity 1 = red, 2 = amber"
+    },
+    "viz_fired": {
+      "type": "splunk.table",
+      "title": "Alerts fired",
+      "dataSources": {
+        "primary": "ds_fired"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ]
+      },
+      "description": "Scheduler runs that produced alerts (throttled runs excluded)"
+    },
+    "viz_att_hdr": {
+      "type": "splunk.markdown",
+      "options": {
+        "fontColor": "#E8ECF4",
+        "backgroundColor": "#0A0F1A",
+        "markdown": "### MITRE ATT\u0026CK mapping\nLeft: techniques seen in correlated incidents during the selected time range. Right: detection coverage per technique, with gaps and untested detections first."
+      }
+    },
+    "viz_att_obs": {
+      "type": "splunk.bar",
+      "title": "Techniques observed, by tactic",
+      "description": "Correlated incident requests per ATT\u0026CK technique",
+      "dataSources": {
+        "primary": "ds_att_obs"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "stackMode": "stacked",
+        "legendDisplay": "top",
+        "xAxisTitleVisibility": "hide",
+        "yAxisTitleVisibility": "hide",
+        "dataValuesDisplay": "off",
+        "seriesColorsByField": {
+          "Reconnaissance": "#5BC0EB",
+          "Initial Access": "#FF9F43",
+          "Execution": "#C084FC",
+          "Credential Access": "#6FCF97",
+          "Unmapped": "#8A94A8"
+        }
+      }
+    },
+    "viz_att_cov": {
+      "type": "splunk.table",
+      "title": "Detection coverage per technique",
+      "dataSources": {
+        "primary": "ds_att_cov"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10,
+        "columnFormat": {
+          "status": {
+            "data": "> table | seriesByName(\"status\") | formatByType(fmt)",
+            "rowColors": "> table | seriesByName(\"status\") | matchValue(stat)"
+          }
+        }
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ],
+        "fmt": {
+          "string": {
+            "unitPosition": "after"
+          }
+        },
+        "stat": [
+          {
+            "match": "tested",
+            "value": "#6FCF97"
+          },
+          {
+            "match": "partial",
+            "value": "#C5E063"
+          },
+          {
+            "match": "untested",
+            "value": "#F8BE34"
+          },
+          {
+            "match": "gap (planned)",
+            "value": "#FF6B6B"
+          }
+        ]
+      },
+      "description": "Gap = planned only, untested = detection exists but not yet exercised, partial = some variants tested"
+    },
+    "viz_ai_hdr": {
+      "type": "splunk.markdown",
+      "options": {
+        "fontColor": "#E8ECF4",
+        "backgroundColor": "#0A0F1A",
+        "markdown": "### AI triage suggestions (advisory only)\nWritten by an AI model through n8n from the alert data. **Not verified, not an action**: a human decides. A failed AI call is shown as `error`, never hidden."
+      }
+    },
+    "viz_ai_ok": {
+      "type": "splunk.singlevalue",
+      "title": "AI answers OK",
+      "dataSources": {
+        "primary": "ds_ai_ok"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "#121A2B",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Valid answers in the selected range",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      }
+    },
+    "viz_ai_err": {
+      "type": "splunk.singlevalue",
+      "title": "AI failures",
+      "dataSources": {
+        "primary": "ds_ai_err"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "error / invalid answers (API down, quota, bad format)",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 1,
+            "value": "#8E2430"
+          },
+          {
+            "to": 1,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_ai_note": {
+      "type": "splunk.markdown",
+      "options": {
+        "fontColor": "#8A94A8",
+        "backgroundColor": "#121A2B",
+        "markdown": "**Pipeline:** Splunk alert, n8n webhook, AI model, validation, Splunk index `soc_ai`.  \nOutput is checked for allowed fields and values before it is stored. Nothing in the pipeline acts on the AI text."
+      }
+    },
+    "viz_ai": {
+      "type": "splunk.table",
+      "title": "Latest AI triage results",
+      "dataSources": {
+        "primary": "ds_ai"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10,
+        "columnFormat": {
+          "status": {
+            "data": "> table | seriesByName(\"status\") | formatByType(fmt)",
+            "rowColors": "> table | seriesByName(\"status\") | matchValue(stat)"
+          }
+        }
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ],
+        "fmt": {
+          "string": {
+            "unitPosition": "after"
+          }
+        },
+        "stat": [
+          {
+            "match": "ok",
+            "value": "#6FCF97"
+          },
+          {
+            "match": "error",
+            "value": "#FF6B6B"
+          },
+          {
+            "match": "invalid",
+            "value": "#F8BE34"
+          }
+        ]
+      },
+      "description": "Newest first. Evidence level defaults to attempt unless the data proves success"
+    },
+    "viz_map_hdr": {
+      "type": "splunk.markdown",
+      "options": {
+        "fontColor": "#E8ECF4",
+        "backgroundColor": "#0A0F1A",
+        "markdown": "### ATT\u0026CK mapping review (human in the loop)\nThe AI only **proposes** mapping rows. A row enters the `attack_mapping` lookup only after a human approves it in the n8n form; every decision is logged here with the backup taken before the write."
+      }
+    },
+    "viz_map_pend": {
+      "type": "splunk.singlevalue",
+      "title": "Proposals pending review",
+      "dataSources": {
+        "primary": "ds_map_pend_n"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "> majorValue | rangeValue(bg)",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Proposed in the last 30 days, no decision yet",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      },
+      "context": {
+        "bg": [
+          {
+            "from": 1,
+            "value": "#8E2430"
+          },
+          {
+            "to": 1,
+            "value": "#1E5A3C"
+          }
+        ]
+      }
+    },
+    "viz_map_app": {
+      "type": "splunk.singlevalue",
+      "title": "Mappings applied",
+      "dataSources": {
+        "primary": "ds_map_app"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "#121A2B",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Approved by a human and written to the lookup",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      }
+    },
+    "viz_map_rej": {
+      "type": "splunk.singlevalue",
+      "title": "Proposals rejected",
+      "dataSources": {
+        "primary": "ds_map_rej"
+      },
+      "options": {
+        "majorColor": "#E8ECF4",
+        "backgroundColor": "#121A2B",
+        "trendDisplay": "off",
+        "sparklineDisplay": "off",
+        "underLabel": "Rejected by a human, lookup unchanged",
+        "underLabelFontSize": 13,
+        "numberPrecision": 0
+      }
+    },
+    "viz_map_pend_t": {
+      "type": "splunk.table",
+      "title": "Pending ATT\u0026CK proposals",
+      "dataSources": {
+        "primary": "ds_map_pend"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ]
+      },
+      "description": "Waiting for a decision in the n8n approval form (last 30 days)"
+    },
+    "viz_map_log": {
+      "type": "splunk.table",
+      "title": "ATT\u0026CK decision log",
+      "dataSources": {
+        "primary": "ds_map_log"
+      },
+      "options": {
+        "backgroundColor": "#121A2B",
+        "tableFormat": {
+          "headerBackgroundColor": "#0E1524",
+          "headerColor": "#8A94A8",
+          "rowBackgroundColors": "> table | seriesByIndex(0) | pick(alt)"
+        },
+        "count": 10,
+        "columnFormat": {
+          "status": {
+            "data": "> table | seriesByName(\"status\") | formatByType(fmt)",
+            "rowColors": "> table | seriesByName(\"status\") | matchValue(stat)"
+          }
+        }
+      },
+      "context": {
+        "alt": [
+          "#121A2B",
+          "#172036"
+        ],
+        "fmt": {
+          "string": {
+            "unitPosition": "after"
+          }
+        },
+        "stat": [
+          {
+            "match": "applied",
+            "value": "#6FCF97"
+          },
+          {
+            "match": "rejected",
+            "value": "#F8BE34"
+          }
+        ]
+      },
+      "description": "Newest first. Each applied row references the backup taken just before the write"
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 3180,
+      "display": "auto-scale",
+      "backgroundColor": "#0A0F1A"
+    },
+    "structure": [
+      {
+        "item": "viz_hdr_bg",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 100
+        }
+      },
+      {
+        "item": "viz_title",
+        "type": "block",
+        "position": {
+          "x": 24,
+          "y": 10,
+          "w": 850,
+          "h": 84
+        }
+      },
+      {
+        "item": "viz_h_sur",
+        "type": "block",
+        "position": {
+          "x": 890,
+          "y": 14,
+          "w": 170,
+          "h": 72
+        }
+      },
+      {
+        "item": "viz_h_drop",
+        "type": "block",
+        "position": {
+          "x": 1070,
+          "y": 14,
+          "w": 170,
+          "h": 72
+        }
+      },
+      {
+        "item": "viz_h_web",
+        "type": "block",
+        "position": {
+          "x": 1250,
+          "y": 14,
+          "w": 170,
+          "h": 72
+        }
+      },
+      {
+        "item": "viz_k_waf",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 120,
+          "w": 335,
+          "h": 130
+        }
+      },
+      {
+        "item": "viz_k_ids",
+        "type": "block",
+        "position": {
+          "x": 375,
+          "y": 120,
+          "w": 335,
+          "h": 130
+        }
+      },
+      {
+        "item": "viz_k_high",
+        "type": "block",
+        "position": {
+          "x": 730,
+          "y": 120,
+          "w": 335,
+          "h": 130
+        }
+      },
+      {
+        "item": "viz_k_bypass",
+        "type": "block",
+        "position": {
+          "x": 1085,
+          "y": 120,
+          "w": 335,
+          "h": 130
+        }
+      },
+      {
+        "item": "viz_timeline",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 270,
+          "w": 900,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_families",
+        "type": "block",
+        "position": {
+          "x": 940,
+          "y": 270,
+          "w": 480,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_incidents",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 610,
+          "w": 1400,
+          "h": 300
+        }
+      },
+      {
+        "item": "viz_sigs",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 930,
+          "w": 860,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_fired",
+        "type": "block",
+        "position": {
+          "x": 900,
+          "y": 930,
+          "w": 520,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_att_hdr",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 1270,
+          "w": 1400,
+          "h": 60
+        }
+      },
+      {
+        "item": "viz_att_obs",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 1340,
+          "w": 560,
+          "h": 340
+        }
+      },
+      {
+        "item": "viz_att_cov",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 1340,
+          "w": 820,
+          "h": 340
+        }
+      },
+      {
+        "item": "viz_ai_hdr",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 1700,
+          "w": 1400,
+          "h": 60
+        }
+      },
+      {
+        "item": "viz_ai_ok",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 1770,
+          "w": 335,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_ai_err",
+        "type": "block",
+        "position": {
+          "x": 375,
+          "y": 1770,
+          "w": 335,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_ai_note",
+        "type": "block",
+        "position": {
+          "x": 730,
+          "y": 1770,
+          "w": 690,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_ai",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 1910,
+          "w": 1400,
+          "h": 380
+        }
+      },
+      {
+        "item": "viz_map_hdr",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 2320,
+          "w": 1400,
+          "h": 60
+        }
+      },
+      {
+        "item": "viz_map_pend",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 2390,
+          "w": 335,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_map_app",
+        "type": "block",
+        "position": {
+          "x": 375,
+          "y": 2390,
+          "w": 335,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_map_rej",
+        "type": "block",
+        "position": {
+          "x": 730,
+          "y": 2390,
+          "w": 335,
+          "h": 120
+        }
+      },
+      {
+        "item": "viz_map_pend_t",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 2530,
+          "w": 1400,
+          "h": 280
+        }
+      },
+      {
+        "item": "viz_map_log",
+        "type": "block",
+        "position": {
+          "x": 20,
+          "y": 2830,
+          "w": 1400,
+          "h": 320
+        }
+      }
+    ],
+    "globalInputs": [
+      "input_time"
+    ]
+  }
+}

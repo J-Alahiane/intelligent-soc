@@ -1,0 +1,43 @@
+detection_key,tactic_id,tactic,technique_id,technique,evidence,coverage_status,attack_version
+SOC - Reconnaissance (scan / burst),TA0043,Reconnaissance,T1595,Active Scanning,attempt,tested,v20
+signal_port_scan,TA0043,Reconnaissance,T1595.001,Scanning IP Blocks,attempt,tested,v20
+signal_scanner_ua,TA0043,Reconnaissance,T1595.002,Vulnerability Scanning,attempt,tested,v20
+signal_directory_burst,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+signal_request_burst,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+Low-and-slow enumeration,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,untested,v20
+Repeated 4xx errors,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+SOC - WAF bypass (direct backend access),TA0001,Initial Access,T1190,Exploit Public-Facing Application,policy-violation,tested,v20
+crs_913,TA0043,Reconnaissance,T1595.002,Vulnerability Scanning,attempt,tested,v20
+crs_930,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+crs_931,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_932,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_932_confirmed,TA0002,Execution,T1059,Command and Scripting Interpreter,confirmed,untested,v20
+crs_933,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_934,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_941,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_942,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+crs_943,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+crs_944,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,untested,v20
+sid_2009358,TA0043,Reconnaissance,T1595.002,Vulnerability Scanning,attempt,tested,v20
+sid_2024364,TA0043,Reconnaissance,T1595.002,Vulnerability Scanning,attempt,tested,v20
+sid_2002825,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2101071,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+sid_2101129,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+sid_2101145,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+sid_2049402,TA0001,Initial Access,T1190,Exploit Public-Facing Application,attempt,tested,v20
+SOC - Login brute force (planned),TA0006,Credential Access,T1110,Brute Force,attempt,planned,v20
+Backend availability (separate from attacks),N/A,None (operational),N/A,Not an ATT&CK detection,operational,tested,v20
+SOC - Suricata capture/ingest health,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,untested,v20
+SOC - Suricata packet drops,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,untested,v20
+SOC - Suricata heartbeat,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,untested,v20
+SOC - WAF disk usage,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,tested,v20
+SOC - Forwarder silent (covers both forwarders),N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,tested,v20
+SOC - Clock skew / ingestion lag,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,tested,v20
+SOC - Suricata watchdog blind,N/A,None (sensor health),N/A,Not an ATT&CK detection,sensor-health,untested,v20
+sid_2010229,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2019526,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2100993,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2101016,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2101877,TA0043,Reconnaissance,T1595.003,Wordlist Scanning,attempt,tested,v20
+sid_2022973,N/A,None (informational),N/A,Not an ATT&CK detection,informational,untested,v20
+sid_2001219,TA0043,Reconnaissance,T1595.001,Scanning IP Blocks,attempt,untested,v20
