@@ -1,70 +1,111 @@
-# Intelligent SOC: WAF, SIEM & Threat Intelligence
+# Intelligent SOC: WAF, SIEM and AI-Assisted Automation
 
-> Documentation repository for my engineering academic project (PFA, SOC & Threat Hunting): a small, fully virtualized Security Operations Center that correlates web-application-firewall events with network intrusion detection in Splunk, to cut false-positive alerts.
-
-This repository contains documentation only (architecture, design decisions, detection logic). It holds no credentials, real logs or exploit code.
-
-## Objectives
-
-- Build a realistic SOC lab: protected web app, attacker machine, SIEM.
-- Detect web attacks at two layers (WAF at the application layer, Suricata IDS at the network layer).
-- **Correlate both sources in Splunk** so an alert fires with higher confidence and fewer false positives.
-- Maintain health monitoring so the pipeline can't silently fail.
+A three-network SOC lab built around OWASP Juice Shop, a deliberately vulnerable web application. A dual-homed WAF VM runs Nginx with ModSecurity v3 and the OWASP Core Rule Set (CRS) 4.29.0, and Suricata 8.0.8 inspects the same traffic on the same VM. A Splunk Universal Forwarder ships all logs to Splunk Enterprise, which correlates WAF and IDS events into one incident alert, maps detections to MITRE ATT&CK (v20) and shows everything on a Dashboard Studio dashboard. n8n adds two automations, both with a human in control: AI triage of each correlated alert with Google Gemini, and AI-proposed ATT&CK mappings that a human approves before they are applied.
 
 ## Architecture
 
-| Network | Role |
+```mermaid
+flowchart LR
+  subgraph NET2["NET 2 · 192.168.40.0/24"]
+    K["Kali Linux<br/>192.168.40.50"]
+  end
+  subgraph WAFVM["WAF VM · 192.168.40.51 / 192.168.20.54"]
+    W["Nginx + ModSecurity v3<br/>OWASP CRS 4.29.0 (DetectionOnly)"]
+    S["Suricata 8.0.8<br/>ens33 + ens37"]
+    U["Splunk Universal Forwarder"]
+  end
+  subgraph NET1["NET 1 · 192.168.20.0/24"]
+    J["OWASP Juice Shop<br/>192.168.20.51:8080"]
+  end
+  P["pfSense 2.7.2"]
+  subgraph NET3["NET 3 · 192.168.30.0/24"]
+    SP["Splunk Enterprise 10.4.1<br/>192.168.30.51"]
+    N["n8n 2.47.7<br/>127.0.0.1:5678"]
+  end
+  G["Google Gemini API<br/>gemini-3.5-flash-lite"]
+  A["SOC analyst"]
+  NAV["ATT&CK Navigator layer"]
+  K -- "HTTP attacks" --> W
+  W -- "proxied requests" --> J
+  W -. logs .-> U
+  S -. eve.json .-> U
+  U -. "TCP 9997" .-> P -.-> SP
+  SP -- "alert webhook" --> N
+  N -- "prompt" --> G
+  G -- "JSON answer" --> N
+  N -- "HEC → index soc_ai" --> SP
+  SP -- "dashboard" --> A
+  A -- "approval form" --> N
+  N -- "layer JSON" --> NAV
+```
+
+## Key capabilities
+
+- Two detection layers on one gateway: ModSecurity + CRS (application) and Suricata with ET Open rules (network).
+- pfSense segmentation: the attacker can reach the application only through the WAF.
+- Splunk correlation of WAF and IDS events on client IP and URL within 5 seconds, with HIGH / MEDIUM / LOW confidence.
+- Detection and health alerts, tagged with ATT&CK technique IDs.
+- MITRE ATT&CK v20 mapping in the `attack_mapping` lookup and a generated ATT&CK Navigator layer.
+- AI triage: each correlated alert goes to Gemini; the validated, advisory-only answer is written back to Splunk.
+- Human-approved ATT&CK mapping: AI proposals, an approval form, backup, verified write, decision log and rollback.
+- Dashboard Studio dashboard covering health, detections, correlation, ATT&CK, AI triage and mapping review.
+
+## Technology
+
+| Component | Version |
 |---|---|
-| NET1 (192.168.20.0/24) | Vulnerable web application behind the WAF |
-| NET2 (192.168.40.0/24) | Attacker machine (Kali Linux) |
-| NET3 (192.168.30.0/24) | Splunk Enterprise (Windows 10 host) |
+| Nginx | 1.18.0 (Ubuntu) |
+| ModSecurity | v3 with the ModSecurity-nginx connector |
+| OWASP CRS | 4.29.0 |
+| Suricata | 8.0.8, ET Open rules |
+| Splunk Enterprise | 10.4.1 |
+| pfSense | 2.7.2 |
+| n8n | 2.47.7 (npm, Node.js 24.22.3) |
+| AI model | Google Gemini API, free tier, `gemini-3.5-flash-lite` |
+| MITRE ATT&CK | Enterprise v20 (collection 20.1) |
 
-<!-- TODO: add architecture diagram (docs/architecture.png) -->
+## Network
 
-## Stack
+| Network | Subnet | Host | Address | Role |
+|---|---|---|---|---|
+| NET 2 | 192.168.40.0/24 | Kali Linux | 192.168.40.50 | Attacker (controlled tests) |
+| NET 2 / NET 1 | — | WAF VM (Ubuntu 22.04, host `waf-vm`) | ens33 192.168.40.51, ens37 192.168.20.54 | Nginx + ModSecurity v3 + CRS 4.29.0, Suricata 8.0.8, Universal Forwarder |
+| NET 1 | 192.168.20.0/24 | OWASP Juice Shop | 192.168.20.51:8080 | Target web application |
+| NET 3 | 192.168.30.0/24 | Splunk Enterprise 10.4.1 (Windows 10 VM) | 192.168.30.51 (receiving port 9997) | SIEM, dashboard, lookups; n8n runs on the same VM |
+| — | — | pfSense 2.7.2 | gateway of each subnet | Segmentation, routing, NTP source |
 
-- **WAF:** Nginx + ModSecurity v3 with OWASP Core Rule Set
-- **IDS:** Suricata 8.0.8 (ET Open rule set), capturing on the WAF VM
-- **SIEM:** Splunk Enterprise + Universal Forwarders
-- **Threat intelligence & framework:** MISP, MITRE ATT&CK mapping
-- **Network analysis:** Zeek
-- **Automation:** n8n
+## Documentation
 
-## Project phases
+1. [Architecture](docs/01-architecture.md)
+2. [WAF: Nginx and ModSecurity](docs/02-waf-modsecurity.md)
+3. [Suricata IDS](docs/03-suricata-ids.md)
+4. [Splunk SIEM](docs/04-splunk-siem.md): forwarding, indexes, macros, correlation, alerts, dashboard
+5. [MITRE ATT&CK mapping](docs/05-mitre-attack.md)
+6. [n8n AI triage](docs/06-n8n-ai-triage.md)
+7. [n8n ATT&CK mapping](docs/07-n8n-attack-mapping.md): proposals, approval, layer
+8. [Tests and results](docs/08-tests-and-results.md)
+9. [Troubleshooting](docs/09-troubleshooting.md)
+10. [Security considerations](docs/10-security-considerations.md)
+11. [Demo runbook](docs/11-demo-runbook.md)
 
-1. **Suricata deployment.** Suricata installed on the same VM as the WAF, capturing on both interfaces. `eve.json` is shipped to Splunk (index `security`, sourcetype `suricata:eve`, host `waf-vm`).
-2. **Correlation and rule optimization.** WAF logs and Suricata alerts are joined in Splunk (macro `corr_incidents`; alert *SOC - Correlated incident (WAF/IDS)*). Redundant report-style alerts were retired, and remaining alerts received explicit trigger conditions and throttling.
-3. **Dashboard.** Visualization of correlated incidents and pipeline health.
+Other folders: [`scripts/`](scripts/) (ATT&CK lookup and layer generators), [`splunk/`](splunk/) (dashboard JSON and `attack_mapping.csv`), [`presentation/`](presentation/) (project slides).
 
-## Detections
+## Screenshots
 
-- Correlated incident (WAF + IDS)
-- Port scan (Suricata)
-- WAF bypass attempts
-- Low-and-slow scanning (100+ distinct paths in 60 minutes, peaking under 30 per minute)
-- Backend availability (HTTP 502/503/504)
+![Splunk Dashboard Studio overview](docs/images/01-dashboard-overview.png)
+*SOC Lab - WAF + IDS Overview: health KPIs, WAF/IDS KPIs and timelines.*
 
-## Reliability
+![Dashboard AI triage section](docs/images/16-dashboard-ai-triage.png)
+*AI triage suggestions (advisory only) with a real result for a correlated incident.*
 
-- Alerts for Suricata capture/ingest health, packet drops and heartbeat.
-- A systemd watchdog timer on the WAF VM restarts Suricata if capture stalls (a known issue when the VM resumes from suspend).
+![n8n ATT&CK mapping approval workflow](docs/images/25-n8n-approval-workflow-final.png)
+*Approval workflow: checks, backup, write, verification and decision logging.*
 
-## Methodology
+![ATT&CK Navigator layer](docs/images/08-attack-navigator-layer.png)
+*Navigator layer generated from the `attack_mapping` lookup.*
 
-Each phase was validated before moving to the next. A baseline of normal browsing was recorded from the attacker machine before testing attacks, to measure false positives.
+## Author
 
-## Status
+Jihad Mohamed Alahiane, cybersecurity engineering student, ENSA Kénitra.
 
-Sections 1 and 2 complete; dashboard in progress.
-
-## Repository layout (planned)
-
-```
-docs/            architecture, design decisions
-detections/      detection logic descriptions
-screenshots/     dashboards and results
-```
-
-## Disclaimer
-
-Built for education in an isolated lab. Attack traffic was generated only against systems I own.
+Built for education in an isolated lab. Attack traffic was generated only against lab systems.
