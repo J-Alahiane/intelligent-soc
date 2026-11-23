@@ -1,5 +1,8 @@
 # 2. WAF: Nginx and ModSecurity
 
+> **Covers:** the Nginx reverse proxy, the ModSecurity v3 + OWASP CRS 4.29.0 settings and the WAF logs.  
+> **Takeaway:** the WAF runs in DetectionOnly on purpose, so every rule match is recorded and can be audited without blocking.
+
 The WAF VM runs Nginx 1.18.0 as a reverse proxy in front of Juice Shop. ModSecurity v3 (ModSecurity-nginx connector) with OWASP CRS 4.29.0 inspects every request.
 
 ## Virtual host

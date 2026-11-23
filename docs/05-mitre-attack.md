@@ -1,5 +1,8 @@
 # 5. MITRE ATT&CK mapping
 
+> **Covers:** the `attack_mapping` and `attack_techniques.csv` lookups and the Navigator layer generator.  
+> **Takeaway:** every detection maps to an ATT&CK v20 technique (or `N/A`), and the official technique list is the allow-list for all AI output.
+
 Detections are mapped to MITRE ATT&CK Enterprise v20 (collection 20.1). Two lookups hold the data: `attack_mapping` (what the lab detects) and `attack_techniques.csv` (the official technique list).
 
 ## Lookup `attack_mapping`

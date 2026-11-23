@@ -1,5 +1,8 @@
 # 3. Suricata IDS
 
+> **Covers:** Suricata capture interfaces, output, reliability measures and local rules.  
+> **Takeaway:** Suricata sees both sides of the proxy, and a watchdog plus health alerts keep capture from failing silently.
+
 Suricata 8.0.8 runs on the WAF VM with the ET Open rule set. It sees the same traffic as the WAF, on both sides of the proxy.
 
 ## Capture and output

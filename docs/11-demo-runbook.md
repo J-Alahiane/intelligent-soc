@@ -1,5 +1,8 @@
 # 11. Demo runbook
 
+> **Covers:** a step-by-step demo, from pre-flight checks to the Navigator layer.  
+> **Takeaway:** run the steps in order to show the whole pipeline in one session.
+
 A full demo, from the attack to the Navigator layer.
 
 ## 1. Pre-flight

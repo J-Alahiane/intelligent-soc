@@ -1,5 +1,8 @@
 # 6. n8n and AI triage
 
+> **Covers:** the n8n installation, credentials, Splunk access and the AI triage workflow.  
+> **Takeaway:** each correlated alert gets a Gemini summary that is validated and stored as advisory only; n8n listens on localhost only.
+
 n8n runs on the Splunk VM. It sends each correlated alert to Google Gemini and writes a validated, advisory-only answer back into Splunk.
 
 ## Installation

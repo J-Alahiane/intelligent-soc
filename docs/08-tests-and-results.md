@@ -1,5 +1,8 @@
 # 8. Tests and results
 
+> **Covers:** the 22 lab tests, their method and result, with screenshot evidence.  
+> **Takeaway:** segmentation, correlation, AI triage, approval, rollback and injection defences were each tested in the lab.
+
 All tests ran in the lab. Attacks came from Kali and targeted the WAF only.
 
 | # | Test | Method | Result |

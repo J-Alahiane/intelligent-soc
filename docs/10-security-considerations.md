@@ -1,5 +1,8 @@
 # 10. Security considerations
 
+> **Covers:** the security controls around the AI, the local services and the secrets.  
+> **Takeaway:** the AI never acts on its own, n8n, HEC and REST are reachable from localhost only, and no secret is stored in this repository.
+
 - **Advisory-only AI.** No workflow takes an automatic response action. Every mapping change requires a human decision.
 - **Prompt-injection defences.** Untrusted data is wrapped in tags and stripped of `<>`. Output is validated against allow-lists. SPL values pass a character allow-list. Technique names come from the official ATT&CK list. Tests T9 and T21 in [Tests and results](08-tests-and-results.md) cover this.
 - **Least privilege.** n8n reads Splunk as `n8n_svc` with only the needed indexes and lookups, and has write access only to `attack_mapping`.

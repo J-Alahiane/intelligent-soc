@@ -1,5 +1,8 @@
 # 1. Architecture
 
+> **Covers:** the three networks, hosts, traffic and log flows, the segmentation test and time sync.  
+> **Takeaway:** the attacker can reach the application only through the dual-homed WAF VM; pfSense blocks the direct path.
+
 The lab has three networks joined by pfSense. The attacker sits in NET 2, the target application in NET 1, and the SIEM in NET 3. A dual-homed WAF VM is the only path from NET 2 to NET 1.
 
 ## Networks and hosts

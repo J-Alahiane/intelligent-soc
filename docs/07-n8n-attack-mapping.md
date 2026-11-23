@@ -1,5 +1,8 @@
 # 7. n8n ATT&CK mapping
 
+> **Covers:** the proposals, approval and layer workflows that maintain the `attack_mapping` lookup.  
+> **Takeaway:** the AI only proposes; a human approves, and every write has a backup, a verification, a decision log and a rollback.
+
 Three workflows keep the `attack_mapping` lookup up to date. The AI proposes rows for unmapped Suricata signatures, a human approves them in a form, and n8n applies them with a backup, a verification, a decision log and a rollback search. A fourth workflow turns the lookup into an ATT&CK Navigator layer.
 
 ```mermaid

@@ -1,5 +1,8 @@
 # 9. Troubleshooting
 
+> **Covers:** 20 problems met while building the lab, each with its symptom, cause and fix.  
+> **Takeaway:** recurring themes are time sync, disk space, HEC settings and n8n 2.x publishing; each has a tested fix.
+
 Problems met while building the lab, in the order they were found.
 
 ### 1. Suricata watchdog blind

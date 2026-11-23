@@ -1,5 +1,8 @@
 # 4. Splunk SIEM
 
+> **Covers:** log forwarding, indexes, macros, WAF/IDS correlation, alerts and the dashboard.  
+> **Takeaway:** WAF and IDS events are joined on client IP and URL within 5 seconds into one incident with HIGH / MEDIUM / LOW confidence.
+
 Splunk Enterprise 10.4.1 runs on a Windows 10 VM at 192.168.30.51. It receives forwarded logs on TCP 9997, correlates WAF and IDS events, runs the alerts and hosts the dashboard.
 
 ## Forwarding
