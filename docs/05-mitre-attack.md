@@ -47,7 +47,7 @@ Colour per coverage status:
 | untested | `#f8be34` |
 
 ![ATT&CK Navigator layer](images/08-attack-navigator-layer.png)
-*Navigator layer generated from `attack_mapping`.*
+*Navigator layer generated from `attack_mapping`. ① The mapped techniques, coloured by coverage status.*
 
 ## On the dashboard
 

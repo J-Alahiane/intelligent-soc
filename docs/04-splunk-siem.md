@@ -100,7 +100,7 @@ Two alerts also call n8n: "SOC - Correlated incident (WAF/IDS)" and "SOC - WAF b
 - ATT&CK mapping review (human in the loop): pending / applied / rejected KPIs, a pending proposals table and the decision log
 
 ![Dashboard overview](images/01-dashboard-overview.png)
-*Overview: health KPIs, WAF/IDS KPIs and timelines.*
+*Overview: health KPIs, WAF/IDS KPIs and timelines. ① The four attack KPIs.*
 
 ![Correlated incidents and top signatures](images/02-dashboard-correlated-incidents.png)
 *Correlated incidents table and top Suricata signatures.*
@@ -109,7 +109,7 @@ Two alerts also call n8n: "SOC - Correlated incident (WAF/IDS)" and "SOC - WAF b
 *Techniques observed and coverage per technique.*
 
 ![Dashboard AI triage section](images/16-dashboard-ai-triage.png)
-*AI triage suggestions with a real result.*
+*AI triage suggestions with a real result. ① Advisory-only notice. ② `ok`, T1190, evidence `attempt`.*
 
 ![Dashboard mapping review KPIs](images/28-dashboard-mapping-review.png)
 *ATT&CK mapping review: pending, applied and rejected KPIs.*

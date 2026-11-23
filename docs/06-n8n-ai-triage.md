@@ -135,4 +135,4 @@ A real Gobuster attack from Kali produced AI events for the correlated alert. Th
 *Gobuster directory enumeration from Kali, through the WAF.*
 
 ![Dashboard AI triage section](images/16-dashboard-ai-triage.png)
-*The AI answer for the correlated incident on the dashboard.*
+*The AI answer for the correlated incident on the dashboard. ① Advisory-only notice. ② `ok`, T1190, evidence `attempt`.*

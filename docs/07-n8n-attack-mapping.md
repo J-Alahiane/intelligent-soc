@@ -5,6 +5,12 @@
 
 Three workflows keep the `attack_mapping` lookup up to date. The AI proposes rows for unmapped Suricata signatures, a human approves them in a form, and n8n applies them with a backup, a verification, a decision log and a rollback search. A fourth workflow turns the lookup into an ATT&CK Navigator layer.
 
+![n8n ATT&CK mapping workflows 2 and 3](diagrams/n8n-mapping-workflows.png)
+*Workflows 2 and 3 step by step. "Load context" groups the three Splunk reads: proposals, existing keys and the allow-list.*
+
+<details>
+<summary>Overview of all three workflows (Mermaid)</summary>
+
 ```mermaid
 flowchart LR
   P["Workflow 2<br/>Proposals<br/>(daily 09:00)"] -- "soc:ai:mapping_proposal<br/>status=pending" --> SP[("Splunk<br/>index soc_ai")]
@@ -15,6 +21,8 @@ flowchart LR
   L --> LY["Workflow 4<br/>Layer<br/>GET /webhook/attack-layer"]
   LY --> NAV["ATT&CK Navigator"]
 ```
+
+</details>
 
 ## Workflow 2: proposals
 
@@ -64,7 +72,7 @@ Time range: `earliest_time=-30d`, `latest_time=now`. SIDs 2200000–2299999 are 
 From `Decide`, a second branch runs `Log rejected` → `HEC decisions rejected`.
 
 ![Full n8n approval workflow](images/25-n8n-approval-workflow-final.png)
-*Approval workflow with the applied and rejected logging branches.*
+*Approval workflow: ① checks, ② backup, ③ write and verification, ④ the rejected and applied logging branches.*
 
 ### The form
 
@@ -120,7 +128,7 @@ The row count is checked after the write. `Check result` returns `ok`, `total`, 
 *First apply: total 42, added 2, with the backup ID.*
 
 ![Check result with rollback search](images/47-rollback-check-result.png)
-*Check result shows the backup ID and the rollback search.*
+*Check result shows ① the backup ID and the rollback search.*
 
 ### Rollback
 
@@ -169,4 +177,4 @@ return d.rows.map(r => ({ json: { payload: { index: "soc_ai", sourcetype: "soc:a
 The production URL returned a layer with 7 techniques: the lookup holds 8 distinct `technique_id` values, and `N/A` is excluded. Open the file in ATT&CK Navigator.
 
 ![ATT&CK Navigator layer](images/08-attack-navigator-layer.png)
-*The generated layer in ATT&CK Navigator.*
+*The generated layer in ATT&CK Navigator. ① The mapped techniques, coloured by coverage status.*

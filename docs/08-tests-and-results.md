@@ -35,10 +35,10 @@ All tests ran in the lab. Attacks came from Kali and targeted the WAF only.
 ### Network and sensors (T2, T3)
 
 ![pfSense log blocking the bypass](images/04-pfsense-waf-bypass-blocked.png)
-*T2: pfSense blocks Kali → NET 1.*
+*T2: pfSense blocks Kali → NET 1. ① "Block WAF bypass to NET1" hits from 192.168.40.50.*
 
 ![Kali cannot reach Juice Shop directly](images/05-kali-direct-backend-access-fails.png)
-*T2: direct access from Kali fails.*
+*T2: direct access from Kali fails. ① 100% packet loss and a TCP timeout.*
 
 ![Suricata watchdog stall test](images/06-suricata-watchdog-stall-test.png)
 *T3: the watchdog restarts Suricata after a simulated stall.*
@@ -49,7 +49,7 @@ All tests ran in the lab. Attacks came from Kali and targeted the WAF only.
 *T14: total 42, added 2, backup ID returned.*
 
 ![Rollback check result](images/47-rollback-check-result.png)
-*T15: Check result with the backup ID and the rollback search.*
+*T15: Check result with ① the backup ID and the rollback search.*
 
 ![Decision log in Splunk](images/27-splunk-decision-log.png)
 *T17: rejected and applied decision events.*
@@ -60,7 +60,7 @@ All tests ran in the lab. Attacks came from Kali and targeted the WAF only.
 *T18: a malformed decision line stops in Check input.*
 
 ![Unknown SID rejected by Decide](images/41-test-unknown-sid-rejected.png)
-*T19: Decide reports "not a pending proposal of this run".*
+*T19: Decide reports ① `ok=false` and "not a pending proposal of this run".*
 
 ![Already mapped SID rejected by Decide](images/42-test-already-mapped-rejected.png)
 *T20: Decide reports "already in attack_mapping".*
@@ -71,10 +71,10 @@ All tests ran in the lab. Attacks came from Kali and targeted the WAF only.
 ### SPL injection (T21)
 
 ![Poisoned proposal sent to HEC](images/44-injection-fake-proposal-sent.png)
-*A poisoned proposal is sent to HEC; the token is typed hidden.*
+*A poisoned proposal is sent to HEC: ① the injected technique text, ② the token typed hidden, ③ HEC accepts the event.*
 
 ![Decide output uses the official technique name](images/45-injection-neutralized-decide-output.png)
-*Decide uses the official ATT&CK name, not the injected text.*
+*Decide uses ① the official ATT&CK name, not the injected text.*
 
 ![No pwned.csv lookup exists](images/46-injection-no-pwned-file.png)
-*No `pwned.csv` file exists.*
+*① No `pwned.csv` lookup exists.*

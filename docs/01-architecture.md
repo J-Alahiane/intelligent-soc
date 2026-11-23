@@ -19,6 +19,17 @@ The lab has three networks joined by pfSense. The attacker sits in NET 2, the ta
 
 **Network and log path.** Kali reaches Juice Shop only through the WAF. pfSense blocks the direct path.
 
+![Network and log path](diagrams/network-log-path.png)
+
+**Automation on the Splunk VM.** n8n and the Splunk HEC and REST ports listen on localhost only. The AI is advisory; the analyst approves every mapping change.
+
+![Automation layer on the Splunk VM](diagrams/automation-layer.png)
+
+Editable SVG sources: [`docs/diagrams/`](diagrams/).
+
+<details>
+<summary>Text version of the diagrams (Mermaid)</summary>
+
 ```mermaid
 flowchart TB
   subgraph NET2["NET 2 · 192.168.40.0/24"]
@@ -45,8 +56,6 @@ flowchart TB
   P --> SP
 ```
 
-**Automation on the Splunk VM.** n8n and the Splunk HEC and REST ports listen on localhost only. The AI is advisory; the analyst approves every mapping change.
-
 ```mermaid
 flowchart LR
   subgraph SVM["Splunk VM · 192.168.30.51"]
@@ -64,6 +73,8 @@ flowchart LR
   N -->|"layer JSON"| NAV
 ```
 
+</details>
+
 ## Traffic and data flows
 
 - Kali can only reach the application through the WAF (`http://192.168.40.51`, or `waf.lab` on Kali). pfSense blocks direct access from Kali to 192.168.20.51.
@@ -77,10 +88,10 @@ flowchart LR
 The bypass path was tested in both directions. pfSense logs the blocked attempt, and Kali cannot open the backend directly.
 
 ![pfSense log blocking the Kali to NET 1 bypass](images/04-pfsense-waf-bypass-blocked.png)
-*pfSense blocks Kali when it tries to reach NET 1 directly.*
+*pfSense blocks Kali when it tries to reach NET 1 directly. ① "Block WAF bypass to NET1" hits from 192.168.40.50 to 192.168.20.51.*
 
 ![Kali cannot reach Juice Shop directly](images/05-kali-direct-backend-access-fails.png)
-*Direct access from Kali to 192.168.20.51 fails; only the WAF path works.*
+*Direct access from Kali to 192.168.20.51 fails; only the WAF path works. ① 100% packet loss and a TCP timeout.*
 
 ## Time synchronisation
 
