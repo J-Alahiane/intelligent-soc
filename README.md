@@ -154,7 +154,7 @@ flowchart LR
 | 10 | [Security considerations](docs/10-security-considerations.md) | Advisory-only AI, injection defences, least privilege, secrets |
 | 11 | [Demo runbook](docs/11-demo-runbook.md) | A full demo, from the attack to the Navigator layer |
 
-Other folders: [`scripts/`](scripts/) (ATT&CK lookup and layer generators), [`splunk/`](splunk/) (dashboard JSON and `attack_mapping.csv`), [`presentation/`](presentation/) (project slides).
+Other folders: [`scripts/`](scripts/) (ATT&CK lookup and layer generators), [`splunk/`](splunk/) (dashboard JSON and `attack_mapping.csv`).
 
 ## Author
 
