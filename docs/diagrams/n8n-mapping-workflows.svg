@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720">
+<title>ATT&amp;CK mapping workflows</title>
+<style>text{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;fill:#0F172A}.h1{font-size:28px;font-weight:700}.sub{font-size:17px;fill:#475569}.zl{font-size:15px;font-weight:700;letter-spacing:1.2px}.ct{font-size:16.5px;font-weight:700}.cs{font-size:14.5px;fill:#475569}.key{font-size:15px;fill:#1E293B}.lbl{font-size:14.5px;font-weight:600;fill:#B91C1C}.m{text-anchor:middle}</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker></defs>
+<rect width="1600" height="720" fill="#FFFFFF"/>
+<text x="40" y="56" class="h1">ATT&amp;CK mapping workflows in n8n</text>
+<text x="40" y="86" class="sub">The AI proposes, a human approves, and n8n applies the change with a backup and a verification.</text>
+<rect x="24" y="112" width="1552" height="190" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="44" y="144" class="zl" style="fill:#B45309">WORKFLOW 2 · PROPOSALS (AI)</text>
+<rect x="44" y="166" width="168" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="128.0" y="196" class="ct m">Trigger</text>
+<text x="128.0" y="220" class="cs m">manual or</text>
+<text x="128.0" y="240" class="cs m">daily 09:00</text>
+<line x1="215" y1="218.0" x2="233" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="236" y="166" width="168" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="320.0" y="196" class="ct m">Unmapped SIDs</text>
+<text x="320.0" y="220" class="cs m">Splunk REST</text>
+<text x="320.0" y="240" class="cs m">last 30 days</text>
+<line x1="407" y1="218.0" x2="425" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="428" y="166" width="168" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="512.0" y="196" class="ct m">Parse</text>
+<text x="512.0" y="220" class="cs m">final rows,</text>
+<text x="512.0" y="240" class="cs m">duplicates removed</text>
+<line x1="599" y1="218.0" x2="617" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="620" y="166" width="168" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="704.0" y="196" class="ct m">Build prompt</text>
+<text x="704.0" y="220" class="cs m">alert data marked</text>
+<text x="704.0" y="240" class="cs m">as untrusted</text>
+<line x1="791" y1="218.0" x2="809" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="812" y="166" width="168" height="104" rx="12" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+<text x="896.0" y="196" class="ct m">Gemini</text>
+<text x="896.0" y="220" class="cs m">proposes</text>
+<text x="896.0" y="240" class="cs m">mappings</text>
+<line x1="983" y1="218.0" x2="1001" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1004" y="166" width="168" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1088.0" y="196" class="ct m">Splunk allowlist</text>
+<text x="1088.0" y="220" class="cs m">ATT&amp;CK v20</text>
+<text x="1088.0" y="240" class="cs m">technique list</text>
+<line x1="1175" y1="218.0" x2="1193" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1196" y="166" width="168" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="1280.0" y="196" class="ct m">Validate</text>
+<text x="1280.0" y="220" class="cs m">IDs and characters</text>
+<text x="1280.0" y="240" class="cs m">checked</text>
+<line x1="1367" y1="218.0" x2="1385" y2="218.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1388" y="166" width="168" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1472.0" y="196" class="ct m">HEC</text>
+<text x="1472.0" y="220" class="cs m">proposals stored</text>
+<text x="1472.0" y="240" class="cs m">status=pending</text>
+<rect x="24" y="322" width="1552" height="300" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="44" y="354" class="zl" style="fill:#15803D">WORKFLOW 3 · APPROVAL (HUMAN DECISION)</text>
+<rect x="44.0" y="376" width="150" height="104" rx="12" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+<text x="119.0" y="406" class="ct m">Form</text>
+<text x="119.0" y="430" class="cs m">analyst enters</text>
+<text x="119.0" y="450" class="cs m">run ID + decisions</text>
+<line x1="197.0" y1="428.0" x2="212.5" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="215.5" y="376" width="150" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="290.5" y="406" class="ct m">Check input</text>
+<text x="290.5" y="430" class="cs m">format and</text>
+<text x="290.5" y="450" class="cs m">run ID regex</text>
+<line x1="368.5" y1="428.0" x2="384.0" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="387.0" y="376" width="150" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="462.0" y="406" class="ct m">Load context</text>
+<text x="462.0" y="430" class="cs m">proposals, keys,</text>
+<text x="462.0" y="450" class="cs m">allow-list</text>
+<line x1="540.0" y1="428.0" x2="555.5" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="558.5" y="376" width="150" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="633.5" y="406" class="ct m">Decide</text>
+<text x="633.5" y="430" class="cs m">all-or-nothing</text>
+<text x="633.5" y="450" class="cs m">checks</text>
+<line x1="711.5" y1="428.0" x2="727.0" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="730.0" y="376" width="150" height="104" rx="12" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+<text x="805.0" y="406" class="ct m">If</text>
+<text x="805.0" y="430" class="cs m">ok and</text>
+<text x="805.0" y="450" class="cs m">rows &gt; 0</text>
+<line x1="883.0" y1="428.0" x2="898.5" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="901.5" y="376" width="150" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="976.5" y="406" class="ct m">Backup</text>
+<text x="976.5" y="430" class="cs m">current rows</text>
+<text x="976.5" y="450" class="cs m">to HEC</text>
+<line x1="1054.5" y1="428.0" x2="1070.0" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1073.0" y="376" width="150" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1148.0" y="406" class="ct m">Write</text>
+<text x="1148.0" y="430" class="cs m">outputlookup</text>
+<text x="1148.0" y="450" class="cs m">attack_mapping</text>
+<line x1="1226.0" y1="428.0" x2="1241.5" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1244.5" y="376" width="150" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1319.5" y="406" class="ct m">Verify</text>
+<text x="1319.5" y="430" class="cs m">row count</text>
+<text x="1319.5" y="450" class="cs m">checked</text>
+<line x1="1397.5" y1="428.0" x2="1413.0" y2="428.0" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<rect x="1416.0" y="376" width="150" height="104" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1491.0" y="406" class="ct m">Log applied</text>
+<text x="1491.0" y="430" class="cs m">decision</text>
+<text x="1491.0" y="450" class="cs m">to HEC</text>
+<path d="M633.5,480 V552 H898.5" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+<text x="645.5" y="540" class="cs" style="font-weight:600">reject decisions</text>
+<rect x="901.5" y="520" width="150" height="64" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+<text x="976.5" y="546" class="ct m">Log rejected</text><text x="976.5" y="568" class="cs m">decision to HEC</text>
+<text x="805.0" y="502" class="lbl m">false: stop,</text><text x="805.0" y="520" class="lbl m">nothing written</text>
+<rect x="24" y="644" width="1552" height="52" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="44" y="676" class="zl" style="fill:#334155">LEGEND</text>
+<rect x="150" y="660" width="20" height="20" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/><text x="180" y="676" class="key">Human input</text>
+<rect x="450" y="660" width="20" height="20" rx="4" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/><text x="480" y="676" class="key">AI call (advisory)</text>
+<rect x="750" y="660" width="20" height="20" rx="4" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/><text x="780" y="676" class="key">Splunk REST or HEC, localhost</text>
+<rect x="1050" y="660" width="20" height="20" rx="4" fill="#F8FAFC" stroke="#334155" stroke-width="2"/><text x="1080" y="676" class="key">n8n Code / logic</text>
+</svg>

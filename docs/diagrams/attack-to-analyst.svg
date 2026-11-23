@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="440" viewBox="0 0 1600 440">
+<title>From attack to analyst</title>
+<style>text{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;fill:#0F172A}.h1{font-size:28px;font-weight:700}.sub{font-size:17px;fill:#475569}.bl{font-size:14px;font-weight:700;letter-spacing:1.2px}.ct{font-size:21px;font-weight:700}.cs{font-size:15.5px;fill:#334155}.num{font-size:16px;font-weight:700;fill:#fff}.m{text-anchor:middle}</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker></defs>
+<rect width="1600" height="440" fill="#FFFFFF"/>
+<text x="40" y="56" class="h1">From attack to analyst</text>
+<text x="40" y="86" class="sub">What happens to one malicious request, end to end.</text>
+<text x="134.0" y="122" class="bl m" style="fill:#DC2626">ATTACKER · NET 2</text>
+<line x1="40" y1="132" x2="228" y2="132" stroke="#DC2626" stroke-width="3" stroke-linecap="round"/>
+<text x="467.0" y="122" class="bl m" style="fill:#334155">WAF VM · SENSORS</text>
+<line x1="262" y1="132" x2="672" y2="132" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+<text x="911.0" y="122" class="bl m" style="fill:#7C3AED">SPLUNK · SIEM</text>
+<line x1="706" y1="132" x2="1116" y2="132" stroke="#7C3AED" stroke-width="3" stroke-linecap="round"/>
+<text x="1244.0" y="122" class="bl m" style="fill:#D97706">AI · ADVISORY</text>
+<line x1="1150" y1="132" x2="1338" y2="132" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
+<text x="1466.0" y="122" class="bl m" style="fill:#16A34A">HUMAN</text>
+<line x1="1372" y1="132" x2="1560" y2="132" stroke="#16A34A" stroke-width="3" stroke-linecap="round"/>
+<rect x="40" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+<path d="M40,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#DC2626"/>
+<circle cx="74" cy="202" r="17" fill="#DC2626"/><text x="74" y="208" class="num m">1</text>
+<text x="100" y="209" class="ct">Attack</text>
+<text x="60" y="252" class="cs">Kali sends SQLi,</text>
+<text x="60" y="275" class="cs">Nmap NSE and</text>
+<text x="60" y="298" class="cs">Gobuster traffic</text>
+<text x="60" y="321" class="cs">to the WAF</text>
+<line x1="232" y1="257.0" x2="258" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="262" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#334155" stroke-width="2"/>
+<path d="M262,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#334155"/>
+<circle cx="296" cy="202" r="17" fill="#334155"/><text x="296" y="208" class="num m">2</text>
+<text x="322" y="209" class="ct">Detect</text>
+<text x="282" y="252" class="cs">ModSecurity + CRS</text>
+<text x="282" y="275" class="cs">and Suricata</text>
+<text x="282" y="298" class="cs">inspect the same</text>
+<text x="282" y="321" class="cs">request</text>
+<line x1="454" y1="257.0" x2="480" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="484" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#334155" stroke-width="2"/>
+<path d="M484,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#334155"/>
+<circle cx="518" cy="202" r="17" fill="#334155"/><text x="518" y="208" class="num m">3</text>
+<text x="544" y="209" class="ct">Forward</text>
+<text x="504" y="252" class="cs">Universal</text>
+<text x="504" y="275" class="cs">Forwarder ships</text>
+<text x="504" y="298" class="cs">logs to Splunk</text>
+<text x="504" y="321" class="cs">on TCP 9997</text>
+<line x1="676" y1="257.0" x2="702" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="706" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<path d="M706,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#7C3AED"/>
+<circle cx="740" cy="202" r="17" fill="#7C3AED"/><text x="740" y="208" class="num m">4</text>
+<text x="766" y="209" class="ct">Correlate</text>
+<text x="726" y="252" class="cs">Same client IP</text>
+<text x="726" y="275" class="cs">and URL within</text>
+<text x="726" y="298" class="cs">5 seconds:</text>
+<text x="726" y="321" class="cs">HIGH / MEDIUM /</text>
+<text x="726" y="344" class="cs">LOW confidence</text>
+<line x1="898" y1="257.0" x2="924" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="928" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<path d="M928,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#7C3AED"/>
+<circle cx="962" cy="202" r="17" fill="#7C3AED"/><text x="962" y="208" class="num m">5</text>
+<text x="988" y="209" class="ct">Alert</text>
+<text x="948" y="252" class="cs">Correlated</text>
+<text x="948" y="275" class="cs">incident alert,</text>
+<text x="948" y="298" class="cs">tagged with</text>
+<text x="948" y="321" class="cs">ATT&amp;CK IDs</text>
+<line x1="1120" y1="257.0" x2="1146" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="1150" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+<path d="M1150,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#D97706"/>
+<circle cx="1184" cy="202" r="17" fill="#D97706"/><text x="1184" y="208" class="num m">6</text>
+<text x="1210" y="209" class="ct">AI triage</text>
+<text x="1170" y="252" class="cs">n8n asks Gemini;</text>
+<text x="1170" y="275" class="cs">the validated,</text>
+<text x="1170" y="298" class="cs">advisory answer</text>
+<text x="1170" y="321" class="cs">goes to soc_ai</text>
+<line x1="1342" y1="257.0" x2="1368" y2="257.0" stroke="#64748B" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="1372" y="150" width="188" height="214" rx="14" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+<path d="M1372,164 a14,14 0 0 1 14,-14 h160 a14,14 0 0 1 14,14 v6 h-188 z" fill="#16A34A"/>
+<circle cx="1406" cy="202" r="17" fill="#16A34A"/><text x="1406" y="208" class="num m">7</text>
+<text x="1432" y="209" class="ct">Analyst</text>
+<text x="1392" y="252" class="cs">Reviews the</text>
+<text x="1392" y="275" class="cs">dashboard and</text>
+<text x="1392" y="298" class="cs">approves ATT&amp;CK</text>
+<text x="1392" y="321" class="cs">mapping changes</text>
+<text x="40" y="410" class="sub">Measured time to detect: about 3–5 minutes, bounded by the 5-minute alert schedule.</text>
+</svg>

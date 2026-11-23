@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920">
+  <title>Network and log path</title>
+  <style>
+    text { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; fill: #0F172A; }
+    .h1 { font-size: 28px; font-weight: 700; }
+    .sub { font-size: 17px; fill: #475569; }
+    .zl { font-size: 15px; font-weight: 700; letter-spacing: 1.2px; }
+    .zs { font-size: 15px; fill: #475569; }
+    .ct { font-size: 19px; font-weight: 700; }
+    .cs { font-size: 15px; fill: #475569; }
+    .tag { font-size: 15px; font-weight: 700; }
+    .tags { font-size: 14px; fill: #334155; }
+    .lbl { font-size: 15px; font-weight: 600; }
+    .key { font-size: 15px; fill: #1E293B; }
+    .num { font-size: 15px; font-weight: 700; fill: #FFFFFF; }
+    .m { text-anchor: middle; }
+    .e { text-anchor: end; }
+  </style>
+  <defs>
+    <marker id="aRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+    <marker id="aPur" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+    <marker id="aSl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  </defs>
+
+  <rect width="1600" height="920" fill="#FFFFFF"/>
+  <text x="40" y="56" class="h1">Network and log path</text>
+  <text x="40" y="86" class="sub">Kali reaches Juice Shop only through the WAF VM. pfSense blocks the direct path.</text>
+
+  <!-- Zones -->
+  <rect x="40" y="120" width="560" height="360" rx="16" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+  <text x="64" y="152" class="zl" fill="#B91C1C" style="fill:#B91C1C">NET 2 · ATTACKER</text>
+  <text x="64" y="174" class="zs">192.168.40.0/24</text>
+
+  <rect x="1000" y="120" width="560" height="360" rx="16" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <text x="1536" y="152" class="zl e" style="fill:#1D4ED8">NET 1 · TARGET</text>
+  <text x="1536" y="174" class="zs e">192.168.20.0/24</text>
+
+  <rect x="520" y="700" width="560" height="190" rx="16" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="544" y="732" class="zl" style="fill:#6D28D9">NET 3 · SIEM</text>
+  <text x="544" y="754" class="zs">192.168.30.0/24</text>
+
+  <!-- Kali -->
+  <rect x="90" y="252" width="250" height="84" rx="12" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <text x="215" y="284" class="ct m">Kali Linux</text>
+  <text x="215" y="307" class="cs m">attacker · 192.168.40.50</text>
+  <text x="215" y="326" class="cs m">targets waf.lab</text>
+
+  <!-- Juice Shop -->
+  <rect x="1210" y="252" width="300" height="84" rx="12" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <text x="1360" y="284" class="ct m">OWASP Juice Shop</text>
+  <text x="1360" y="307" class="cs m">192.168.20.51:8080</text>
+  <text x="1360" y="326" class="cs m">target web application</text>
+
+  <!-- WAF VM (dual-homed, bridges NET 2 and NET 1) -->
+  <rect x="440" y="190" width="720" height="260" rx="16" fill="#FFFFFF" stroke="#334155" stroke-width="2.5"/>
+  <text x="800" y="222" class="ct m">WAF VM · waf-vm</text>
+  <text x="800" y="244" class="cs m">Ubuntu 22.04 · dual-homed</text>
+
+  <rect x="452" y="266" width="120" height="56" rx="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="512" y="289" class="tag m">ens33</text>
+  <text x="512" y="309" class="tags m">192.168.40.51</text>
+
+  <rect x="1028" y="266" width="120" height="56" rx="10" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1088" y="289" class="tag m">ens37</text>
+  <text x="1088" y="309" class="tags m">192.168.20.54</text>
+
+  <rect x="590" y="262" width="420" height="64" rx="10" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="800" y="288" class="ct m" style="font-size:18px">Nginx + ModSecurity v3</text>
+  <text x="800" y="310" class="cs m">Nginx 1.18.0 · OWASP CRS 4.29.0 · DetectionOnly</text>
+
+  <rect x="590" y="350" width="190" height="84" rx="10" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="685" y="377" class="ct m" style="font-size:18px">Suricata IDS</text>
+  <text x="685" y="399" class="cs m">8.0.8 · ET Open</text>
+  <text x="685" y="419" class="cs m">captures ens33 + ens37</text>
+
+  <rect x="826" y="350" width="184" height="84" rx="10" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="918" y="377" class="ct m" style="font-size:17px">Universal Forwarder</text>
+  <text x="918" y="399" class="cs m">ModSecurity, Nginx</text>
+  <text x="918" y="419" class="cs m">and eve.json logs</text>
+
+  <!-- internal log hand-off -->
+  <line x1="780" y1="392" x2="822" y2="392" stroke="#64748B" stroke-width="2" marker-end="url(#aSl)"/>
+  <line x1="918" y1="326" x2="918" y2="346" stroke="#64748B" stroke-width="2" marker-end="url(#aSl)"/>
+
+  <!-- pfSense -->
+  <rect x="640" y="540" width="320" height="90" rx="14" fill="#F8FAFC" stroke="#334155" stroke-width="2.5"/>
+  <text x="800" y="577" class="ct m">pfSense 2.7.2</text>
+  <text x="800" y="601" class="cs m">segmentation · routing · NTP</text>
+
+  <!-- Splunk -->
+  <rect x="650" y="770" width="300" height="96" rx="12" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="800" y="802" class="ct m">Splunk Enterprise 10.4.1</text>
+  <text x="800" y="826" class="cs m">192.168.30.51 · receives :9997</text>
+  <text x="800" y="846" class="cs m">Windows 10 VM · also runs n8n</text>
+
+  <!-- Attack path (solid, numbered) -->
+  <line x1="340" y1="294" x2="448" y2="294" stroke="#DC2626" stroke-width="3" marker-end="url(#aRed)"/>
+  <line x1="572" y1="294" x2="586" y2="294" stroke="#DC2626" stroke-width="3"/>
+  <line x1="1010" y1="294" x2="1028" y2="294" stroke="#DC2626" stroke-width="3"/>
+  <line x1="1148" y1="294" x2="1206" y2="294" stroke="#DC2626" stroke-width="3" marker-end="url(#aRed)"/>
+  <circle cx="390" cy="294" r="14" fill="#DC2626"/><text x="390" y="299" class="num m">1</text>
+  <circle cx="1177" cy="294" r="14" fill="#DC2626"/><text x="1177" y="299" class="num m">2</text>
+
+  <!-- Blocked direct path (dashed red, X at pfSense) -->
+  <path d="M180,336 V585 H636" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="9 7"/>
+  <path d="M960,585 H1360 V340" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="9 7" stroke-opacity="0.45" marker-end="url(#aRed)"/>
+  <g stroke="#DC2626" stroke-width="5" stroke-linecap="round">
+    <line x1="996" y1="571" x2="1024" y2="599"/><line x1="1024" y1="571" x2="996" y2="599"/>
+  </g>
+  <text x="1046" y="579" class="lbl" style="fill:#B91C1C">blocked by pfSense</text>
+  <text x="200" y="520" class="lbl" style="fill:#B91C1C">direct to 192.168.20.51</text>
+
+  <!-- Log path (dotted purple) -->
+  <line x1="918" y1="434" x2="918" y2="534" stroke="#7C3AED" stroke-width="3.5" stroke-dasharray="2 7" stroke-linecap="round" marker-end="url(#aPur)"/>
+  <line x1="800" y1="630" x2="800" y2="764" stroke="#7C3AED" stroke-width="3.5" stroke-dasharray="2 7" stroke-linecap="round" marker-end="url(#aPur)"/>
+  <circle cx="918" cy="486" r="14" fill="#7C3AED"/><text x="918" y="491" class="num m">3</text>
+  <text x="894" y="491" class="lbl e" style="fill:#6D28D9">logs · TCP 9997</text>
+  <text x="818" y="690" class="lbl" style="fill:#6D28D9">TCP 9997</text>
+
+  <!-- Path key -->
+  <rect x="40" y="700" width="440" height="190" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="64" y="732" class="zl" style="fill:#334155">PATH</text>
+  <circle cx="76" cy="763" r="12" fill="#DC2626"/><text x="76" y="768" class="num m" style="font-size:13px">1</text>
+  <text x="100" y="768" class="key">Kali sends HTTP attacks to the WAF</text>
+  <circle cx="76" cy="797" r="12" fill="#DC2626"/><text x="76" y="802" class="num m" style="font-size:13px">2</text>
+  <text x="100" y="802" class="key">Nginx proxies them to Juice Shop :8080</text>
+  <circle cx="76" cy="831" r="12" fill="#7C3AED"/><text x="76" y="836" class="num m" style="font-size:13px">3</text>
+  <text x="100" y="836" class="key">Forwarder ships logs via pfSense to Splunk</text>
+  <g stroke="#DC2626" stroke-width="4" stroke-linecap="round"><line x1="68" y1="857" x2="84" y2="873"/><line x1="84" y1="857" x2="68" y2="873"/></g>
+  <text x="100" y="870" class="key">Direct Kali → Juice Shop is dropped</text>
+
+  <!-- Legend -->
+  <rect x="1120" y="700" width="440" height="190" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="1144" y="732" class="zl" style="fill:#334155">LEGEND</text>
+  <line x1="1144" y1="763" x2="1204" y2="763" stroke="#DC2626" stroke-width="3"/>
+  <text x="1216" y="768" class="key">Attack path</text>
+  <line x1="1144" y1="797" x2="1204" y2="797" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="9 7"/>
+  <text x="1216" y="802" class="key">Blocked path</text>
+  <line x1="1144" y1="831" x2="1204" y2="831" stroke="#7C3AED" stroke-width="3.5" stroke-dasharray="2 7" stroke-linecap="round"/>
+  <text x="1216" y="836" class="key">Log path</text>
+  <rect x="1370" y="752" width="20" height="20" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+  <text x="1400" y="768" class="key">Attacker</text>
+  <rect x="1370" y="786" width="20" height="20" rx="4" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <text x="1400" y="802" class="key">Target</text>
+  <rect x="1370" y="820" width="20" height="20" rx="4" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="1400" y="836" class="key">SIEM</text>
+  <rect x="1370" y="854" width="20" height="20" rx="4" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+  <text x="1400" y="870" class="key">Gateway / WAF</text>
+</svg>

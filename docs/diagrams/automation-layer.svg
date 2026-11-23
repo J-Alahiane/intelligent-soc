@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="930" viewBox="0 0 1600 930">
+  <title>Automation layer on the Splunk VM</title>
+  <style>
+    text { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; fill: #0F172A; }
+    .h1 { font-size: 28px; font-weight: 700; }
+    .sub { font-size: 17px; fill: #475569; }
+    .zl { font-size: 15px; font-weight: 700; letter-spacing: 1.2px; }
+    .zs { font-size: 15px; fill: #475569; }
+    .ct { font-size: 20px; font-weight: 700; }
+    .cs { font-size: 15px; fill: #475569; }
+    .rt { font-size: 16px; font-weight: 700; }
+    .rs { font-size: 14.5px; fill: #475569; }
+    .lbl { font-size: 15px; font-weight: 600; fill: #1E293B; }
+    .port { font-size: 14px; font-weight: 600; fill: #6D28D9; }
+    .pill { font-size: 13px; font-weight: 700; letter-spacing: 1px; fill: #FFFFFF; }
+    .key { font-size: 15px; fill: #1E293B; }
+    .m { text-anchor: middle; }
+    .e { text-anchor: end; }
+  </style>
+  <defs>
+    <marker id="aSl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+    <marker id="aAm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+    <marker id="aGr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16A34A"/></marker>
+  </defs>
+
+  <rect width="1600" height="930" fill="#FFFFFF"/>
+  <text x="40" y="56" class="h1">Automation layer on the Splunk VM</text>
+  <text x="40" y="86" class="sub">n8n, HEC and REST listen on localhost only. The AI advises; the analyst decides.</text>
+
+  <!-- Splunk VM zone -->
+  <rect x="290" y="120" width="960" height="600" rx="16" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="314" y="152" class="zl" style="fill:#6D28D9">SPLUNK VM · NET 3</text>
+  <text x="314" y="174" class="zs">192.168.30.51 · Windows 10</text>
+
+  <!-- Splunk card -->
+  <rect x="330" y="200" width="320" height="480" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="490" y="234" class="ct m">Splunk Enterprise</text>
+  <text x="490" y="256" class="cs m">10.4.1</text>
+  <g fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5">
+    <rect x="350" y="280" width="280" height="56" rx="10"/>
+    <rect x="350" y="370" width="280" height="56" rx="10"/>
+    <rect x="350" y="460" width="280" height="56" rx="10"/>
+    <rect x="350" y="580" width="280" height="56" rx="10"/>
+  </g>
+  <text x="490" y="304" class="rt m">Correlated alert</text>
+  <text x="490" y="325" class="rs m">webhook action</text>
+  <text x="490" y="394" class="rt m">index soc_ai</text>
+  <text x="490" y="415" class="rs m">AI results, proposals, decisions</text>
+  <text x="490" y="484" class="rt m">attack_mapping lookup</text>
+  <text x="490" y="505" class="rs m">ATT&amp;CK v20 mappings</text>
+  <text x="490" y="604" class="rt m">Dashboard Studio</text>
+  <text x="490" y="625" class="rs m">SOC Lab - WAF + IDS Overview</text>
+
+  <!-- n8n card -->
+  <rect x="930" y="200" width="300" height="480" rx="14" fill="#FFFFFF" stroke="#334155" stroke-width="2"/>
+  <text x="1080" y="234" class="ct m">n8n 2.47.7</text>
+  <text x="1080" y="256" class="cs m">four published workflows</text>
+  <g fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5">
+    <rect x="950" y="280" width="260" height="56" rx="10"/>
+    <rect x="950" y="370" width="260" height="56" rx="10"/>
+    <rect x="950" y="460" width="260" height="56" rx="10"/>
+    <rect x="950" y="580" width="260" height="56" rx="10"/>
+  </g>
+  <text x="1080" y="304" class="rt m">1 · AI triage</text>
+  <text x="1080" y="325" class="rs m">webhook → Gemini → HEC</text>
+  <text x="1080" y="394" class="rt m">2 · Mapping proposals</text>
+  <text x="1080" y="415" class="rs m">daily 09:00 · Gemini → HEC</text>
+  <text x="1080" y="484" class="rt m">3 · Approval</text>
+  <text x="1080" y="505" class="rs m">form · backup · write · verify</text>
+  <text x="1080" y="604" class="rt m">4 · ATT&amp;CK layer</text>
+  <text x="1080" y="625" class="rs m">GET /webhook/attack-layer</text>
+
+  <!-- Splunk <-> n8n, all on localhost -->
+  <line x1="630" y1="308" x2="946" y2="308" stroke="#475569" stroke-width="2.5" marker-end="url(#aSl)"/>
+  <text x="790" y="298" class="lbl m">alert webhook</text>
+  <text x="790" y="330" class="port m">127.0.0.1:5678</text>
+
+  <line x1="950" y1="398" x2="634" y2="398" stroke="#475569" stroke-width="2.5" marker-end="url(#aSl)"/>
+  <text x="790" y="388" class="lbl m">HEC → index soc_ai</text>
+  <text x="790" y="420" class="port m">127.0.0.1:8088</text>
+
+  <line x1="636" y1="488" x2="944" y2="488" stroke="#475569" stroke-width="2.5" marker-start="url(#aSl)" marker-end="url(#aSl)"/>
+  <text x="790" y="478" class="lbl m">REST · user n8n_svc</text>
+  <text x="790" y="510" class="port m">127.0.0.1:8089</text>
+
+  <!-- localhost banner -->
+  <rect x="660" y="560" width="260" height="96" rx="12" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="790" y="590" class="rt m" style="fill:#5B21B6">Localhost only</text>
+  <text x="790" y="612" class="rs m">Windows Firewall blocks</text>
+  <text x="790" y="632" class="rs m">8088 and 8089 from the network</text>
+
+  <!-- Gemini -->
+  <rect x="1340" y="246" width="220" height="124" rx="14" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+  <text x="1450" y="280" class="rt m" style="font-size:18px">Google Gemini API</text>
+  <text x="1450" y="303" class="rs m">gemini-3.5-flash-lite</text>
+  <rect x="1375" y="322" width="150" height="28" rx="14" fill="#D97706"/>
+  <text x="1450" y="341" class="pill m">AI ADVISES</text>
+  <line x1="1234" y1="308" x2="1336" y2="308" stroke="#D97706" stroke-width="2.5" marker-start="url(#aAm)" marker-end="url(#aAm)"/>
+  <text x="1285" y="296" class="lbl m" style="font-size:14px">prompt</text>
+  <text x="1285" y="330" class="lbl m" style="font-size:14px">JSON</text>
+
+  <!-- Navigator -->
+  <rect x="1340" y="556" width="220" height="104" rx="14" fill="#FFFFFF" stroke="#334155" stroke-width="2"/>
+  <text x="1450" y="592" class="rt m" style="font-size:18px">ATT&amp;CK Navigator</text>
+  <text x="1450" y="615" class="rs m">layer JSON file</text>
+  <text x="1450" y="636" class="rs m">from attack_mapping</text>
+  <line x1="1230" y1="608" x2="1336" y2="608" stroke="#475569" stroke-width="2.5" marker-end="url(#aSl)"/>
+  <text x="1285" y="596" class="lbl m" style="font-size:14px">layer</text>
+
+  <!-- Analyst -->
+  <rect x="40" y="556" width="200" height="104" rx="14" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+  <text x="140" y="594" class="ct m">SOC analyst</text>
+  <rect x="58" y="614" width="164" height="28" rx="14" fill="#16A34A"/>
+  <text x="140" y="633" class="pill m">HUMAN DECIDES</text>
+  <line x1="330" y1="608" x2="244" y2="608" stroke="#16A34A" stroke-width="2.5" marker-end="url(#aGr)"/>
+  <text x="287" y="596" class="lbl m" style="font-size:14px">reviews</text>
+
+  <!-- Approval loop -->
+  <path d="M140,660 V790 H1080 V684" fill="none" stroke="#16A34A" stroke-width="2.5" marker-end="url(#aGr)"/>
+  <text x="610" y="778" class="lbl m" style="fill:#15803D">approves or rejects each proposal in the n8n form</text>
+  <text x="610" y="814" class="rs m">/form/attack-mapping-approval · all-or-nothing checks · nothing changes without it</text>
+
+  <!-- Legend -->
+  <rect x="40" y="846" width="1520" height="60" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="64" y="882" class="zl" style="fill:#334155">LEGEND</text>
+  <rect x="164" y="866" width="20" height="20" rx="4" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="194" y="882" class="key">Splunk VM (NET 3)</text>
+  <rect x="384" y="866" width="20" height="20" rx="4" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+  <text x="414" y="882" class="key">AI, advisory only</text>
+  <rect x="594" y="866" width="20" height="20" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+  <text x="624" y="882" class="key">Human decision</text>
+  <line x1="794" y1="876" x2="844" y2="876" stroke="#475569" stroke-width="2.5" marker-end="url(#aSl)"/>
+  <text x="856" y="882" class="key">Data flow</text>
+  <text x="986" y="882" class="key" style="fill:#6D28D9;font-weight:600">127.0.0.1:port</text>
+  <text x="1100" y="882" class="key">= listens on localhost only</text>
+</svg>
